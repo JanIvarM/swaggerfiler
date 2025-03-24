@@ -1,0 +1,206 @@
+{
+    "info": {
+      "title": "Acos.Mottaksenter.SkjemaWebService",
+      "description": "Skjema API for mottak av diverse skjema til Acos Mottak",
+      "contact": {
+        "name": "Acos Dokumenthåndtering",
+        "url": "https://www.acos.no",
+        "email": "support@acos.no"
+      },
+      "version": "v1"
+    },
+    "paths": {
+      "/api/{tenant}/arkivmelding": {
+        "post": {
+          "tags": [
+            "Arkivmelding"
+          ],
+          "summary": "Sender arkivmelding til arkivsystemet for tenant",
+          "operationId": "PostArkivMelding",
+          "parameters": [
+            {
+              "name": "tenant",
+              "in": "path",
+              "description": "ID for tenant",
+              "required": true,
+              "type": "string"
+            },
+            {
+              "description": "Arkivmelding som skal sendes",
+              "required": true,
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "$ref": "#/definitions/ArkivmeldingRequest"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Arkivmelding mottatt og behandlet",
+              "schema": {
+                "$ref": "#/definitions/ArkivmeldingResponse"
+              }
+            },
+            "400": {
+              "description": "Ugyldig inndata"
+            },
+            "401": {
+              "description": "Manglende eller ugyldig autentisering"
+            },
+            "500": {
+              "description": "Intern serverfeil"
+            }
+          },
+          "consumes": [
+            "application/json"
+          ],
+          "produces": [
+            "application/json"
+          ]
+        }
+      },
+      "/api/{tenant}/arkivmelding/test": {
+        "get": {
+          "tags": [
+            "Arkivmelding"
+          ],
+          "summary": "Tester tilkoblingen til arkivsystemet for tenant",
+          "operationId": "TestArkivMelding",
+          "parameters": [
+            {
+              "name": "tenant",
+              "in": "path",
+              "description": "ID for tenant",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tilkobling er OK"
+            },
+            "401": {
+              "description": "Manglende eller ugyldig autentisering"
+            },
+            "404": {
+              "description": "Tenant ikke funnet"
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "oauth2": [
+          "mottak_fillager.skrive"
+        ]
+      }
+    ],
+    "swagger": "2.0",
+    "definitions": {
+      "ArkivmeldingRequest": {
+        "required": [
+          "eksternReferanse",
+          "innhold",
+          "tittel"
+        ],
+        "type": "object",
+        "properties": {
+          "eksternReferanse": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Referanse til ekstern system"
+          },
+          "tittel": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Tittel/overskrift for arkivmeldingen"
+          },
+          "innhold": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Meldingsinnhold"
+          },
+          "vedlegg": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Vedlegg"
+            },
+            "description": "Liste over vedlegg",
+            "x-nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Metadata for arkivmeldingen",
+            "x-nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Arkivmelding for innsending til arkivsystem"
+      },
+      "ArkivmeldingResponse": {
+        "type": "object",
+        "properties": {
+          "vellykket": {
+            "type": "boolean",
+            "description": "Angir om arkiveringen var vellykket"
+          },
+          "melding": {
+            "type": "string",
+            "description": "Melding fra arkivsystemet",
+            "x-nullable": true
+          },
+          "journalpostId": {
+            "type": "string",
+            "description": "Referanse til journalpost i arkivsystemet",
+            "x-nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Respons fra arkivmelding-endepunktet"
+      },
+      "Vedlegg": {
+        "required": [
+          "filnavn",
+          "innhold",
+          "mimeType"
+        ],
+        "type": "object",
+        "properties": {
+          "filnavn": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Filnavn på vedlegget"
+          },
+          "mimeType": {
+            "minLength": 1,
+            "type": "string",
+            "description": "MIME-type for vedlegget"
+          },
+          "innhold": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Base64-kodet innhold av filen"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Vedlegg til arkivmelding"
+      }
+    },
+    "securityDefinitions": {
+      "oauth2": {
+        "type": "oauth2",
+        "flow": "accessCode",
+        "authorizationUrl": "https://login.microsoftonline.com/common/v2.0/authorize",
+        "tokenUrl": "https://login.microsoftonline.com/common/v2.0/token",
+        "scopes": {
+          "mottak_fillager.skrive": "Skrive"
+        }
+      }
+    },
+    "x-components": {}
+  }
